@@ -5,15 +5,17 @@ import java.io.PrintWriter;
 import java.net.Socket;
 import java.util.ArrayList;
 
+import Entite.Game;
+
 public class Salon {
 
 	private ArrayList<Socket> joueurs;
 	private ArrayList<Game> games;
 	private PrintWriter out = null;
 
-	public Salon() {
+	public Salon(ArrayList<Game> games) {
 		joueurs = new ArrayList<Socket>();
-		games = new ArrayList<Game>();
+		this.games = games;
 	}
 
 	public void addJoueur(Socket s) {
@@ -29,6 +31,7 @@ public class Salon {
 	}
 
 	public void DelJoueur(Socket s) {
+		if(joueurs != null)
 		for (int i = 0; i < joueurs.size(); i++) {
 			if (joueurs.get(i) == s) {
 				joueurs.remove(i);
@@ -56,12 +59,11 @@ public class Salon {
 		}
 		String message = "salonAjout,";
 		for (Game g : games) {
-			message += g.getProprio() + ";" + g.getName() + "@";
+			message += g.getProprio() + ";" + g.getName() +";"+g.getJoueurs().size()+"/8@";
 
 		}
-		if (!message.equals("salonAjout,")) {
 			out.println(message);
 			out.flush();
-		}
+		
 	}
 }

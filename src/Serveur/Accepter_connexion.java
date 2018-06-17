@@ -4,6 +4,8 @@ import java.io.*;
 import java.net.*;
 import java.util.ArrayList;
 
+import Entite.Game;
+
 
 public class Accepter_connexion implements Runnable{
 
@@ -30,8 +32,10 @@ public class Accepter_connexion implements Runnable{
 			socket = socketserver.accept();
 			
 			System.out.println("Un joueur veut se connecter");
-			t1 = new Thread(new Authentification(socket, games, salon));
-			t1.start();
+			/*t1 = new Thread(new Authentification(socket, games, salon));
+			t1.start();*/
+			Reception rec = new Reception(socket, games, salon);
+			rec.start();
 
 			}
 		} catch (IOException e) {

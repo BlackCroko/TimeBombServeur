@@ -2,54 +2,139 @@ package Serveur;
 
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.PrintWriter;
+import java.net.Socket;
+import java.util.ArrayList;
+
+import Entite.Game;
+import Entite.Joueur;
+import javafx.application.Platform;
+import javafx.scene.Group;
 
 
 public class Reception extends Thread {
 
 	private BufferedReader in;
 	private PrintWriter out = null;
-	private String message = null, login = null;
+	private Socket socket;
+	private String message = null;
+	private ArrayList<Game> games;
+	private Salon salon;
 	private Game game;
+	private String login = "";
 	private boolean running = true;
 	
-	public Reception(BufferedReader in, String login, Game g){
+	public Reception(Socket s, ArrayList<Game> games, Salon salon){
+		this.socket = s;
+		this.games = games;
+		this.salon = salon;
 		
-		this.in = in;
-		this.login = login;
-		this.game = g;
+		try {
+			in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+			out = new PrintWriter(socket.getOutputStream());
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		out.println("anim");
+		out.flush();
 	}
 	
 	public void arret(){
 		running = false;
 	}
+	
 
 	
+
 	public void run() {
 		
 		while(running){
 	        try {
+	        	
 			message = in.readLine();
-			if(message == null)
-				arret();
-				
-			if(login.equals(game.getJ1())){
-				System.out.println(game.getJ1()+" : "+message+"   "+game.getJ2());
-				out = new PrintWriter(game.getJoueur2().getOutputStream());
-				out.println(message);
-			    out.flush();
-			}
-			else {
-				System.out.println(game.getJ2()+" : "+message+"   "+game.getJ1());
-				out = new PrintWriter(game.getJoueur1().getOutputStream());
-				out.println(message);
-			    out.flush();
+			if(login != "")
+				System.out.println(login+" dit :" +message);
+			else 
+				System.out.println("Le joueur dit :" +message);
+			String infos[] = message.split(",");
+			switch (infos[0])
+			{
+			  case "Join":
+					login = infos[1];
+					out.println("menu," + login + ",connecte");
+					out.flush();
+
+			    break; 
+			  case "Salon":
+					salon.addJoueur(socket);
+					game = null;
+			    break; 
+			  case "JoinGame":
+					salon.DelJoueur(socket);
+					out.println("createGame," + login + ","+infos[2]);
+					out.flush();
+					for(Game g : games){
+						if(g.getName().equals(infos[1])){
+							game = g;
+							g.addJoueur(new Joueur(socket, login));
+						}
+					}
+			    break;       
+			  case "Create":
+					salon.DelJoueur(socket);
+					out.println("salon," + login + ",connecte");
+					out.flush();
+
+			    break; 
+			  case "CreateGame":
+				  	game = new Game(login, infos[1]);
+					out.println("createGame," + infos[1] + ","+login);
+					out.flush();
+					game.addJoueur(new Joueur(socket, login));
+					salon.addGame(game);
+
+			    break;
+			  case "startGame":
+				  	
+					game.initGame();
+			    break;
+			  case "retourner":
+					game.jouerCarte(infos[1], infos[2], Integer.parseInt(infos[3]));
+			    break;
+			  case "retournerfin":
+					game.retournerFin();
+			    break;
+			  case "Quit":
+				  salon.DelJoueur(socket);
+				  if(game != null){
+					  game.DelJoueur(socket);
+					  if(game.getProprio().equals(login)){
+						  game.suppr();
+						  salon.DelGame(game);
+					  }
+				  }
+				  System.out.println("Un joueur s'est deconnecte");
+				  socket.close();
+				  running = false;
+			    break;
+			  default:
+			    /*Action*/;             
 			}
 		    } catch (IOException e) {
 				arret();
-		    	System.err.println(login +"s'est déconnecté ");
+		    	System.out.println("Le client est mort");
 			}
 		}
+		try {
+			socket.close();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
+	
+	
 
 }

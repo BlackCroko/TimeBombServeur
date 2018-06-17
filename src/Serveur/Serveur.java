@@ -5,10 +5,12 @@ import java.net.*;
 import java.util.ArrayList;
 import java.util.Scanner;
 
+import Entite.Game;
+
 public class Serveur {
  public static ServerSocket ss = null;
- public static ArrayList<Game> games = new ArrayList<Game>();
- public static Salon salon = new Salon();
+ public static ArrayList<Game> games;
+ public static Salon salon;
  public static Thread t;
 
  
@@ -17,7 +19,8 @@ public class Serveur {
 		try {
 			ss = new ServerSocket(2009);
 			System.out.println("Le serveur est à l'écoute du port "+ss.getLocalPort());
-			
+			games = new ArrayList<Game>();
+			salon = new Salon(games);
 			t = new Thread(new Accepter_connexion(ss, games, salon));
 			t.start();
 
