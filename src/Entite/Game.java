@@ -142,22 +142,25 @@ public class Game {
 		}
 	}
 
-	public void retournerFin() {
-		if (!finGame) {
-			if (cableJoue >= joueurs.size()) {
-				if(nbtour < 3){
-				reconstruction();
-				distribution();
-				SendDeck();
-				nbtour++;
-			} else{
-				System.out.println(nbtour);
-				teamwin = 1;
+	public void retournerFin(String login) {
+		if (login.equals(proprio)) {
+			System.out.println("carte est retourné !!!!!!!!!");
+			if (!finGame) {
+				if (cableJoue >= joueurs.size()) {
+					if (nbtour < 3) {
+						reconstruction();
+						distribution();
+						SendDeck();
+						nbtour++;
+					} else {
+						System.out.println(nbtour);
+						teamwin = 1;
+						SendFinGame();
+					}
+				}
+			} else {
 				SendFinGame();
 			}
-			}
-		} else {
-			SendFinGame();
 		}
 	}
 
